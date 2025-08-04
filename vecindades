@@ -1,0 +1,31 @@
+import streamlit as st
+
+st.title("Comparador de Patentes entre Pórticos")
+
+st.markdown("### Pega las patentes por pórtico (una por línea):")
+
+# Crear campos para cada pórtico
+porticos = {}
+num_porticos = st.number_input("¿Cuántos pórticos deseas analizar?", min_value=2, max_value=20, value=3)
+
+for i in range(1, num_porticos + 1):
+    data = st.text_area(f"Pórtico {i}", height=150)
+    patentes = set(line.strip() for line in data.splitlines() if line.strip())
+    porticos[f"Portico {i}"] = patentes
+
+if st.button("Analizar"):
+    st.markdown("## Patentes únicas por pórtico:")
+    for portico, patentes in porticos.items():
+        otras_patentes = set.union(*(v for k, v in porticos.items() if k != portico))
+        unicas = patentes - otras_patentes
+        st.write(f"🔹 {portico}: {unicas if unicas else 'Ninguna'}")
+
+    st.markdown("## Patentes frecuentes:")
+    from collections import Counter
+    contador = Counter()
+    for pats in porticos.values():
+        for pat in pats:
+            contador[pat] += 1
+    umbral = st.slider("Aparece en al menos cuántos pórticos:", 1, num_porticos, 2)
+    frecuentes = [p for p, c in contador.items() if c >= umbral]
+    st.write(f"✅ Patentes que aparecen en al menos {umbral} pórticos:", frecuentes if frecuentes else "Ninguna")
